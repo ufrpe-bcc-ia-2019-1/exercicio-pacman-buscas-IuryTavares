@@ -40,6 +40,8 @@ from game import Actions
 import util
 import time
 import search
+from util import Stack
+flag=1
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -49,6 +51,498 @@ class GoWestAgent(Agent):
         if Directions.WEST in state.getLegalPacmanActions():
             return Directions.WEST
         else:
+            return Directions.STOP
+
+"P1-1"
+class GoEastAgent(Agent):
+    "An agent that is too dumb to make a turn."
+
+    def getAction(self, state):
+        "The agent receives a GameState (defined in pacman.py)."
+        "[Project 1] YOUR CODE HERE"
+	if Directions.EAST in state.getLegalPacmanActions():
+		return Directions.EAST
+	else:
+		return Directions.STOP
+
+
+"P1-2"
+
+
+class CleanerAgent(Agent):
+    "The floor is too dirty."
+
+    def getAction(self, state):
+        "The agent receives a GameState (defined in pacman.py)."
+        "[Project 1] YOUR CODE HERE"
+
+        pos = state.getPacmanPosition()
+        num_food = state.getNumFood()
+        # print pos[0]
+        # print pos[1]
+        # print "\n"
+
+        flag_east = state.hasFood(pos[0] + 1, pos[1])
+        flag_south = state.hasFood(pos[0], pos[1] - 1)
+        flag_north = state.hasFood(pos[0], pos[1] + 1)
+        flag_west = state.hasFood(pos[0] - 1, pos[1])
+
+        if Directions.EAST in state.getLegalPacmanActions() and (flag_east):
+            return Directions.EAST
+        elif Directions.SOUTH in state.getLegalPacmanActions() and (flag_south):
+            return Directions.SOUTH
+        elif Directions.WEST in state.getLegalPacmanActions() and (flag_west):
+            return Directions.WEST
+        elif Directions.NORTH in state.getLegalPacmanActions() and (flag_north):
+            return Directions.NORTH
+        else:
+            return Directions.STOP
+
+
+class FroggerAgent(Agent):
+    "It's dangerous to cross streets with eyes closed."
+
+    def getAction(self, state):
+        "The agent receives a GameState (defined in pacman.py)."
+        "[Project 1] YOUR CODE HERE"
+        """
+        #G#
+        #P#_1
+        ###         if state.hasWall(state.getPacmanPosition()[0]+1, state.getPacmanPosition()[1]-1): ###wall
+        if state.getGhostPosition(1)[1]-state.getPacmanPosition()[1] == 1 and state.getGhostPosition(1)[0] == state.getPacmanPosition()[0]:
+            if state.getGhostState(1).getDirection() == Directions.SOUTH:
+                    if Directions.EAST in state.getLegalPacmanActions():###wall
+                        return Directions.EAST
+                    elif Directions.SOUTH in state.getLegalPacmanActions():###wall
+                        return Directions.SOUTH
+                    else:
+                        return Directions.WEST
+            else:
+                    if Directions.EAST in state.getLegalPacmanActions():###wall
+                        print "1"
+                        return Directions.EAST
+                    elif Directions.SOUTH in state.getLegalPacmanActions():###wall
+                        return Directions.SOUTH
+                    else:
+                        return Directions.STOP
+        #G#
+        #P#_2
+        ###         if state.hasWall(state.getPacmanPosition()[0]+1, state.getPacmanPosition()[1]-1): ###wall
+        elif state.getGhostPosition(2)[1]-state.getPacmanPosition()[1] == 1 and state.getGhostPosition(2)[0] == state.getPacmanPosition()[0]:
+            if state.getGhostState(1).getDirection() == Directions.SOUTH:
+                    if Directions.EAST in state.getLegalPacmanActions():###wall
+                        return Directions.EAST
+                    elif Directions.SOUTH in state.getLegalPacmanActions():###wall
+                        return Directions.SOUTH
+                    else:
+                        return Directions.WEST
+            else:
+                    if Directions.EAST in state.getLegalPacmanActions():###wall
+                        print "2"
+                        return Directions.EAST
+                    elif Directions.SOUTH in state.getLegalPacmanActions():###wall
+                        return Directions.SOUTH
+                    else:
+                        return Directions.STOP"""
+        # weight: <0 is "don't choose"!!
+        w = 0
+        e = 0
+        n = 0
+        s = 0
+        S = 0
+        near = 0
+        ##G
+        # P#_1
+        ###
+        if state.getGhostPosition(1)[0] - state.getPacmanPosition()[0] == 1 and state.getGhostPosition(1)[1] - \
+                state.getPacmanPosition()[1] == 1:
+            # print "hello1"
+            near = 1
+            if state.getGhostState(1).getDirection() == Directions.WEST:
+                # print "1"
+                n = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "3"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(1).getDirection() == Directions.SOUTH:
+                e = -1
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        ###
+        # PG_1
+        ###
+        elif state.getGhostPosition(1)[1] == state.getPacmanPosition()[1] and state.getGhostPosition(1)[0] - \
+                state.getPacmanPosition()[0] == 1:
+            near = 1
+            # print "222"
+            if state.getGhostState(1).getDirection() == Directions.WEST:
+
+                S = -1
+                e = -1
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                elif Directions.NORTH in state.getLegalPacmanActions():
+                    n = n + 2 if n >= 0 else n
+                else:
+                    w = w + 2 if w >= 0 else w
+            elif state.getGhostState(1).getDirection() == Directions.NORTH:
+                # print "1"
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(1).getDirection() == Directions.SOUTH:
+                # print "1"
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "4"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        ###
+        # P#_1
+        # G#
+        elif state.getGhostPosition(1)[1] - state.getPacmanPosition()[1] == -1 and state.getGhostPosition(1)[0] == \
+                state.getPacmanPosition()[0]:
+            # print "2"
+            near = 1
+            if state.getGhostState(1).getDirection() == Directions.NORTH:
+                S = -1
+                s = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "6"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.WEST in state.getLegalPacmanActions():
+                    w = w + 2 if w >= 0 else w
+                else:  ###
+                    n = n + 2 if n >= 0 else n
+            elif state.getGhostState(1).getDirection() == Directions.WEST:
+                # print "3-1"
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    e = e + 2 if e >= 0 else e
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(1).getDirection() == Directions.EAST:
+                # print "3-2"
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    e = e + 2 if e >= 0 else e
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "7"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        ###
+        # P#_1
+        ##G
+        elif state.getGhostPosition(1)[0] - state.getPacmanPosition()[0] == 1 and state.getGhostPosition(1)[1] - \
+                state.getPacmanPosition()[1] == -1:
+
+            near = 1
+            if state.getGhostState(1).getDirection() == Directions.WEST or state.getGhostState(
+                    1).getDirection() == Directions.EAST:  # project bug??
+                # print "3"
+                s = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "8"
+                    e = e + 2 if e >= 0 else e
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(1).getDirection() == Directions.NORTH:
+                # print "5"
+                e = -1
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "9"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        # ###
+        # #P#_1
+        # G##
+        elif state.getGhostPosition(1)[0] - state.getPacmanPosition()[0] == -1 and state.getGhostPosition(1)[1] - \
+                state.getPacmanPosition()[1] == -1:
+            # print "5"
+            near = 1
+            if state.getGhostState(1).getDirection() == Directions.EAST:
+                # print "e1"
+                S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "10"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        ##G
+        # P#_2
+        ###
+        if state.getGhostPosition(2)[0] - state.getPacmanPosition()[0] == 1 and state.getGhostPosition(2)[1] - \
+                state.getPacmanPosition()[1] == 1:
+            # print "6"
+            near = 1
+            if state.getGhostState(2).getDirection() == Directions.WEST:
+
+                n = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "4"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(2).getDirection() == Directions.SOUTH:
+                e = -1
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    return Directions.EAST
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        ###
+        # PG_2
+        ###
+        elif state.getGhostPosition(2)[1] == state.getPacmanPosition()[1] and state.getGhostPosition(2)[0] - \
+                state.getPacmanPosition()[0] == 1:
+            # print "7"
+            near = 1
+            if state.getGhostState(2).getDirection() == Directions.WEST:
+
+                S = -1
+                e = -1
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                elif Directions.NORTH in state.getLegalPacmanActions():
+                    n = n + 2 if n >= 0 else n
+                else:
+                    w = w + 2 if w >= 0 else w
+            elif state.getGhostState(2).getDirection() == Directions.NORTH:
+
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    # print "here"
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(1).getDirection() == Directions.SOUTH:
+                # print "1"
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "5"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+        ###
+        # P#_2
+        # G#
+        elif state.getGhostPosition(2)[1] - state.getPacmanPosition()[1] == -1 and state.getGhostPosition(2)[0] == \
+                state.getPacmanPosition()[0]:
+            # print "8"
+            near = 1
+            if state.getGhostState(2).getDirection() == Directions.NORTH:
+                # print "4"
+                S = -1
+                s = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "6"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.WEST in state.getLegalPacmanActions():
+                    w = w + 2 if w >= 0 else w
+                else:  ###
+                    n = n + 2 if n >= 0 else n
+            elif state.getGhostState(2).getDirection() == Directions.WEST:
+                s = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "6"
+                    e = e + 2 if e >= 0 else e
+                else:  ###
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "7"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+                    ###
+        # P#_2
+        ##G
+        elif state.getGhostPosition(2)[0] - state.getPacmanPosition()[0] == 1 and state.getGhostPosition(2)[1] - \
+                state.getPacmanPosition()[1] == -1:
+            # print "9"
+            near = 1
+            if state.getGhostState(2).getDirection() == Directions.WEST:
+
+                s = -1
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "1"
+                    e = e + 2 if e >= 0 else e
+                else:
+                    S = S + 2 if S >= 0 else S
+            elif state.getGhostState(2).getDirection() == Directions.NORTH:
+                # print "6"
+                e = -1
+                # print "hi!"
+                if Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+                    # ###
+        # #P#_2
+        # G##
+        elif state.getGhostPosition(2)[0] - state.getPacmanPosition()[0] == -1 and state.getGhostPosition(2)[1] - \
+                state.getPacmanPosition()[1] == -1:
+            # print "e2"
+            near = 1
+            if state.getGhostState(2).getDirection() == Directions.EAST:
+
+                S = S + 2 if S >= 0 else S
+            else:
+                if Directions.EAST in state.getLegalPacmanActions():  ###wall
+                    # print "11"
+                    e = e + 2 if e >= 0 else e
+                elif Directions.SOUTH in state.getLegalPacmanActions():  ###wall
+                    s = s + 2 if s >= 0 else s
+                else:
+                    S = S + 2 if S >= 0 else S
+
+                #####################################################################    not completed.
+        if not near:
+            if Directions.EAST in state.getLegalPacmanActions():
+                if state.hasWall(state.getPacmanPosition()[0] + 1, state.getPacmanPosition()[1] - 1):
+                    s = s + 1 if s >= 0 else s
+                else:
+                    # print "111"
+                    e = e + 1 if e >= 0 else e
+            elif Directions.SOUTH in state.getLegalPacmanActions():
+                if state.hasWall(state.getPacmanPosition()[0] + 1, state.getPacmanPosition()[1] - 1):
+                    s = s + 1 if s >= 0 else s
+                else:
+                    s = s + 1 if s >= 0 else s
+            elif Directions.NORTH in state.getLegalPacmanActions():
+                n = n + 1 if n >= 0 else n
+            elif Directions.WEST in state.getLegalPacmanActions():
+                w = w + 1 if w >= 0 else w
+            else:
+                S = S + 1 if S >= 0 else S
+                # decide direction!
+        decision = Directions.EAST
+        maxi = e
+        decision = Directions.SOUTH if s > maxi else decision
+        decision = Directions.STOP if S > maxi else decision
+        decision = Directions.NORTH if n > maxi else decision
+        decision = Directions.WEST if w > maxi else decision
+        # print state.getGhostState(1).getDirection()
+        # print state.getPacmanPosition()[0] ,state.getPacmanPosition()[1]
+        # print state.getGhostState(2).getDirection[0] ,state.getGhostState(2).getDirection[1]
+        return decision
+
+
+"P1-4"
+
+
+class SnakeAgent(Agent):
+    "But you don't have a sneaking suit."
+
+    def getAction(self, state):
+        "The agent receives a GameState (defined in pacman.py)."
+        "[Project 1] YOUR CODE HERE"
+
+        ghost_1_Direction = state.getGhostState(1).getDirection()
+        ghost_2_Direction = state.getGhostState(2).getDirection()
+
+        ghost1_pos = state.getGhostPosition(1)
+        ghost2_pos = state.getGhostPosition(2)
+        pacman_pos = state.getPacmanPosition()
+
+        ghost_pos_1_x = ghost1_pos[0]
+        ghost_pos_1_y = ghost1_pos[1]
+        ghost_pos_2_x = ghost2_pos[0]
+        ghost_pos_2_y = ghost2_pos[1]
+
+        # print ghost_1_Direction
+        # print ghost_2_Direction
+        # print "\n"
+
+        if Directions.EAST in state.getLegalPacmanActions():
+            if (pacman_pos[0] + 1 == ghost_pos_1_x or pacman_pos[0] + 2 == ghost_pos_2_x or pacman_pos[
+                0] + 1 == ghost_pos_2_x or pacman_pos[0] + 2 == ghost_pos_1_x):
+                if (pacman_pos[1] - ghost_pos_2_y == 0 or pacman_pos[1] - ghost_pos_2_y == -1 or pacman_pos[
+                    1] - ghost_pos_2_y == 1):
+                    if Directions.NORTH in state.getLegalPacmanActions():
+                        return Directions.NORTH
+                    elif Directions.SOUTH in state.getLegalActions():
+                        return Directions.SOUTH
+                    else:
+                        return Directions.WEST
+                else:
+                    return Directions.EAST
+            else:
+                return Directions.EAST
+
+        else:
+            if (ghost_1_Direction == ghost_2_Direction and ghost_1_Direction == "East"):
+                if ((ghost_pos_1_x > ghost_pos_2_x) and (ghost_pos_2_x > pacman_pos[0])):
+                    return Directions.SOUTH
+                elif ((ghost_pos_2_x > ghost_pos_1_x) and (ghost_pos_1_x > pacman_pos[0])):
+                    return Directions.SOUTH
+
+            elif (ghost_1_Direction != ghost_2_Direction):
+                if ((ghost_pos_1_x < ghost_pos_2_x) and (ghost_pos_2_x < pacman_pos[0])):
+                    return Directions.NORTH
+                elif ((ghost_pos_2_x < ghost_pos_1_x) and (ghost_pos_1_x < pacman_pos[0])):
+                    return Directions.NORTH
+
+            # print "HEHEHEEHEH"
+            # print "\n"
             return Directions.STOP
 
 #######################################################
